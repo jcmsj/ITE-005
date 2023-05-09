@@ -3,6 +3,15 @@ package Bankers;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Scanner;
+import java.util.function.Consumer;
+import java.awt.Font;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.UIManager;
 
 public class Algorithm {
     public Process[] ps;
@@ -62,7 +71,7 @@ public class Algorithm {
         this.processCount = processCount;
         ps = new Process[processCount];
         availableTemp = new int[instanceCount];
-        available = new int[processCount+1][instanceCount];
+        available = new int[processCount + 1][instanceCount];
     }
 
     public void compute() {
@@ -113,29 +122,138 @@ public class Algorithm {
                 }
             }
         } while (hasTodo());
+    }
 
-        System.out.println("PROCESS \tALLOCATIONS  \t\t MAXIMUM\t     AVAILABLE\t\t\t NEED");
-        System.out.println(
-                "\t       A     B     C  \t      A     B     C   \t   A     B     C  \t    A     B     C  ");
+    public void createHeaders(StringBuilder code) {
+        char label = 'A';
+        code.append("<tr>");
+        for (int i = 0; i < availableTemp.length; i++) {
+            code.append("<th>" + label + ("</th>"));
+            label++;
+        }
+        code.append("</tr>");
+    }
 
+    public static enum Column {
+        alloc,
+        max,
+        free,
+        need
+    }
+
+    public String printSub(Column c) {
+        var code = new StringBuilder("<table>");
+        createHeaders(code);
         for (int i = 0; i < ps.length; i++) {
+            int[] row = {};
             var p = ps[i];
-            System.out.print("  P" + i + "      ");
-            showRows(p.allocation);
-            System.out.print("     ");
-            showRows(p.maximum);
-            System.out.print("   ");
-            showRows(available[i]);
-            System.out.print("       ");
-            showRows(p.need);
-            System.out.println("");
+            switch (c) {
+                case alloc:
+                    row = p.allocation;
+                    break;
+                case max:
+                    row = p.maximum;
+                    break;
+                case free:
+                    row = available[i];
+                    break;
+                default:
+                    row = p.need;
+                    break;
+            }
+            code.append("<tr>");
+            for (int n : row) {
+                code.append("<td>" + n + "</td>");
+            }
+            code.append("</tr>");
         }
-        System.out.print("\t\t\t\t\t\t      ");
-        showRows(available[5]);
-        System.out.print("\nSafe state: ");
-        for (int n : sequence) {
-            System.out.print("P" + n + " ");
+        code.append("<tr>");
+        for (int n : available[ps.length]) {
+            code.append("<td>" + (c == Column.free ? n : "") + "</td>");
         }
+        code.append("</tr>");
+
+        code.append("</table>");
+        return code.toString();
+    }
+
+    public String printSubTable() {
+        var code = new StringBuilder("");
+        code.append("<td>");
+        code.append(printSub(Column.alloc));
+        code.append("</td>");
+
+        code.append("<td>");
+        code.append(printSub(Column.max));
+        code.append("</td>");
+
+        code.append("<td>");
+        code.append(printSub(Column.free));
+        code.append("</td>");
+
+        code.append("<td>");
+        code.append(printSub(Column.need));
+        code.append("</td>");
+        return code.toString();
+    }
+
+    public StringBuilder showJTable() {
+        StringBuilder code = new StringBuilder("""
+                <html>
+                <style>
+                #main, th, td {
+                    text-align: center;
+                }
+                </style>
+                <table id='main'>
+                <tr>
+                    <th>PROCESS</th>
+                    <th>ALLOCATIONS</th>
+                    <th>MAXIMUM</th>
+                    <th>AVAILABLE</th>
+                    <th>NEED</th>
+                </tr>""");
+        code.append("<tr>");
+        code.append(showProcesses());
+        code.append(printSubTable());
+        code.append("</tr>");
+        code.append("</table></html>");
+        return code;
+    }
+
+    public void showResult() {
+        UIManager.put("Label.font", new Font("arial", Font.PLAIN, 40));
+        JFrame frame = new JFrame("Banker's Algorithm");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setResizable(false);
+        var main = new JPanel();
+        main.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
+        var code = showJTable();
+        var tabl = new JLabel(code.toString());
+        var seqBuilder = new StringBuilder("Safe State: ");
+        for (int i = 0; i < sequence.size(); i++) {
+            seqBuilder.append("P" + sequence.get(i) + (i == sequence.size() - 1 ? "" : "  → "));
+        }
+        var seq = new JLabel(seqBuilder.toString());
+        main.add(tabl);
+        main.add(seq);
+        frame.add(main);
+        frame.pack();
+        frame.setVisible(true);
+    }
+
+    public String showProcesses() {
+        var code = new StringBuilder();
+        // Skip 1st column in 1st row
+        code.append("<td><table id='sub'><tr><th></th></tr>");
+        for (var p : ps) {
+            code.append("<tr>");
+            code.append("<td>P" + p.id + "</td>");
+            code.append("</tr>");
+        }
+        code.append("<tr></tr></table></td>");
+        return code.toString();
     }
 
     public static boolean isLessThanOrEqual(int[] a, int[] b) {

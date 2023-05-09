@@ -24,5 +24,6 @@ public class Test {
         a.availableTemp = new int[] { 10, 5, 7 };
         a.compute();
         a.actual();
+        a.showResult();
     }
 }
