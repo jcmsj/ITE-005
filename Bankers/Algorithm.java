@@ -3,9 +3,7 @@ package Bankers;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Scanner;
-import java.util.function.Consumer;
 import java.awt.Font;
-
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
