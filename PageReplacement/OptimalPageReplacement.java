@@ -41,9 +41,7 @@ public class OptimalPageReplacement {
                             Integer p = page.get(j);
                             if (p == refs.get(k)) {
                                 replace = j;
-                                if (clone.contains(p)) {
-                                    clone.remove(p);
-                                }
+                                clone.remove(p);
                                 if (clone.isEmpty()) {
                                     break outer;
                                 }
