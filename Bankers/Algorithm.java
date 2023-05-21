@@ -281,15 +281,16 @@ public class Algorithm {
         // ASK USER n INSTANCES
         System.out.println("\t==========================");
         System.out.print("\t INPUT " + instanceCount + " INSTANCES: ");
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < instanceCount; i++) {
             a.availableTemp[i] = sc.nextInt();
         }
 
-        for (int i = 0; i < instanceCount; i++) {
+        for (int i = 0; i < processCount; i++) {
             a.ps[i] = Process.ask(sc, i, instanceCount);
         }
 
         a.compute();
         a.actual();
+        a.showResult();
     }
 }
